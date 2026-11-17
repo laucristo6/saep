@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Tutor</title>
+    <link rel="stylesheet" href="/static/dono.css">
+</head>
+<body class="dono-page">
+
+    <nav class="navbar-senai">
+        <div class="logo-container">
+            <img src="/static/clinicaveterinaria.png" alt="clinica logo">
+        </div>
+        <ul class="nav-links">
+            <li><a href="/donos">Cadastro de Tutor</a></li>
+            <li><a href="/pets">Gerenciar Pets</a></li>
+            <li><a href="/agendamentos">Agendamentos</a></li>
+            <li><a href="/logout" class="btn-adm">Sair</a></li>
+        </ul>
+    </nav>
+
+    <div class="form-container">
+        <div class="form-card">
+            <h2>Cadastrar Tutor</h2>
+            <form id="formDono">
+                <div class="form-group">
+                    <label for="nome">Nome Completo:</label>
+                    <input type="text" id="nome" name="nome" placeholder="Digite o nome do tutor" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">Telefone:</label>
+                    <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="endereco">Endereço:</label>
+                    <input type="text" id="endereco" name="endereco" placeholder="Rua, número, bairro">
+                </div>
+
+                <div class="form-group">
+                    <label for="pet_id">Pet do Tutor:</label>
+                    <select id="pet_id" name="pet_id" required>
+                        <option value="">Selecione o pet</option>
+                        {% for pet in pets %}
+                        <option value="{{ pet.id }}">{{ pet.nome }} ({{ pet.especie }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Salvar Tutor</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h2>Tutores Cadastrados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>Endereço</th>
+                    <th>Pet</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dono in donos %}
+                <tr>
+                    <td>{{ dono.nome }}</td>
+                    <td>{{ dono.cpf }}</td>
+                    <td>{{ dono.telefone }}</td>
+                    <td>{{ dono.endereco }}</td>
+                    <td>{{ dono.nome_pet or 'Sem pet' }}</td>
+                    <td>
+                        <button type="button" data-id="{{ dono.id }}" onclick="excluirDono(this.dataset.id)" class="btn-excluir">Excluir</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('formDono').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const res = await fetch('/cadastrar_dono', {
+                method: 'POST',
+                body: new FormData(this)
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.status === 'sucesso') {
+                alert(data.mensagem);
+                window.location.reload();
+            } else {
+                alert('Erro ao cadastrar: ' + data.mensagem);
+            }
+        });
+
+        async function excluirDono(id) {
+            if (confirm('Tem certeza que deseja excluir este tutor?')) {
+                const res = await fetch(`/excluir_dono/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'sucesso') {
+                    alert(data.mensagem);
+                    window.location.reload();
+                } else {
+                    alert('Erro ao excluir: ' + data.mensagem);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

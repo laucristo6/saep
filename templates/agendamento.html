@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamentos</title>
+    <link rel="stylesheet" href="/static/agendamento.css">
+</head>
+<body class="agendamento-page">
+
+    <nav class="navbar-senai">
+        <div class="logo-container">
+            <img src="/static/clinicaveterinaria.png" alt="clinica logo">
+        </div>
+        <ul class="nav-links">
+            <li><a href="/donos">Cadastro de Tutor</a></li>
+            <li><a href="/pets">Gerenciar Pets</a></li>
+            <li><a href="/agendamentos">Agendamentos</a></li>
+            <li><a href="/logout" class="btn-adm">Sair</a></li>
+        </ul>
+    </nav>
+
+    <div class="form-container">
+        <div class="form-card">
+            <h2>Novo Agendamento</h2>
+            <form id="formAgendamento">
+                <div class="form-group">
+                    <label for="dono_id">Tutor:</label>
+                    <select id="dono_id" name="dono_id" required>
+                        <option value="">Selecione o tutor</option>
+                        {% for dono in donos %}
+                        <option value="{{ dono.id }}">{{ dono.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="pet_id">Pet:</label>
+                    <select id="pet_id" name="pet_id" required>
+                        <option value="">Selecione o pet</option>
+                        {% for pet in pets %}
+                        <option value="{{ pet.id }}">{{ pet.nome }} ({{ pet.especie }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="data_consulta">Data:</label>
+                    <input type="date" id="data_consulta" name="data_consulta" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hora_consulta">Horário:</label>
+                    <input type="time" id="hora_consulta" name="hora_consulta" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="motivo">Serviço / Motivo:</label>
+                    <select id="motivo" name="motivo" required>
+                        <option value="">Selecione o serviço</option>
+                        <option value="Consulta de Rotina">Consulta de Rotina</option>
+                        <option value="Vacinação">Vacinação</option>
+                        <option value="Banho e Tosa">Banho e Tosa</option>
+                        <option value="Exames">Exames</option>
+                        <option value="Retorno">Retorno</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">Agendar</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h2>Consultas Agendadas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Horário</th>
+                    <th>Tutor</th>
+                    <th>Pet</th>
+                    <th>Serviço</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ag in agendamentos %}
+                <tr>
+                    <td>{{ ag.data_formatada }}</td>
+                    <td>{{ ag.hora_formatada }}</td>
+                    <td>{{ ag.nome_dono }}</td>
+                    <td>{{ ag.nome_pet }}</td>
+                    <td>{{ ag.motivo }}</td>
+                    <td>
+                        <button type="button" data-id="{{ ag.id }}" onclick="excluirAgendamento(this.dataset.id)" class="btn-excluir">Cancelar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('formAgendamento').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const res = await fetch('/cadastrar_agendamento', {
+                method: 'POST',
+                body: new FormData(this)
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.status === 'sucesso') {
+                alert(data.mensagem);
+                window.location.reload();
+            } else {
+                alert('Erro ao agendar: ' + data.mensagem);
+            }
+        });
+
+        async function excluirAgendamento(id) {
+            if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                const res = await fetch(`/excluir_agendamento/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'sucesso') {
+                    alert(data.mensagem);
+                    window.location.reload();
+                } else {
+                    alert('Erro ao cancelar: ' + data.mensagem);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

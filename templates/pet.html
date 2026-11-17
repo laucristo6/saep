@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Pets</title>
+    <link rel="stylesheet" href="/static/pet.css">
+</head>
+<body class="pet-page">
+
+    <nav class="navbar-senai">
+        <div class="logo-container">
+            <img src="/static/clinicaveterinaria.png" alt="clinica logo">
+        </div>
+        <ul class="nav-links">
+            <li><a href="/donos">Cadastro de Tutor</a></li>
+            <li><a href="/pets">Gerenciar Pets</a></li>
+            <li><a href="/agendamentos">Agendamentos</a></li>
+            <li><a href="/logout" class="btn-adm">Sair</a></li>
+        </ul>
+    </nav>
+
+    <div class="form-container">
+        <div class="form-card">
+            <h2>Cadastrar Pet</h2>
+            <form id="formPet">
+                <div class="form-group">
+                    <label for="nome">Nome do Pet:</label>
+                    <input type="text" id="nome" name="nome" placeholder="Digite o nome do animal" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="especie">Espécie:</label>
+                    <select id="especie" name="especie" required>
+                        <option value="">Selecione a espécie</option>
+                        <option value="Cachorro">Cachorro</option>
+                        <option value="Gato">Gato</option>
+                        <option value="Ave">Ave</option>
+                        <option value="Roedor">Roedor</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="raca">Raça:</label>
+                    <input type="text" id="raca" name="raca" placeholder="Ex: SRD, Poodle, Siamês">
+                </div>
+
+                <div class="form-group">
+                    <label for="idade">Idade (anos):</label>
+                    <input type="number" id="idade" name="idade" min="0" placeholder="0">
+                </div>
+
+                <button type="submit" class="btn-submit">Cadastrar Pet</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h2>Pets Cadastrados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Espécie</th>
+                    <th>Raça</th>
+                    <th>Idade</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pet in pets %}
+                <tr>
+                    <td>{{ pet.nome }}</td>
+                    <td>{{ pet.especie }}</td>
+                    <td>{{ pet.raca }}</td>
+                    <td>{{ pet.idade }} anos</td>
+                    <td>
+                        <button type="button" data-id="{{ pet.id }}" onclick="excluirPet(this.dataset.id)" class="btn-excluir">Excluir</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById('formPet').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const res = await fetch('/cadastrar_pet', {
+                method: 'POST',
+                body: new FormData(this)
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.status === 'sucesso') {
+                alert(data.mensagem);
+                window.location.reload();
+            } else {
+                alert('Erro ao cadastrar: ' + data.mensagem);
+            }
+        });
+
+        async function excluirPet(id) {
+            if (confirm('Tem certeza que deseja excluir este pet?')) {
+                const res = await fetch(`/excluir_pet/${id}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'sucesso') {
+                    alert(data.mensagem);
+                    window.location.reload();
+                } else {
+                    alert('Erro ao excluir: ' + data.mensagem);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
